@@ -1,6 +1,6 @@
 % Take PSD estimates from Triton Soundscape analysis and plot as 2D and 3D surfaces to see changes in soundscape over time
 
-psd = readtable('W:\projects\2022_NOAA-NERRS(UMich)_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC05_PSD_1h.csv');
+psd = readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC05\BC05_PSD_1h.csv');
 
 timestamps = datenum(datetime(table2array(psd(:,1)),'InputFormat','yyyy-MM-dd''T''HH:mm:ss.SSS''Z'));
 
@@ -9,7 +9,7 @@ freqs = psd.Properties.VariableNames(2:end);
 freqs = str2double(cellfun(@(x) extractAfter(x,'PSD_'),freqs,'UniformOutput',0));
 specs = table2array(psd(:,2:end));
 
-figure(1)
+figure(99)
 imagesc(timestamps,freqs,specs')
 datetick('x')
 xlim([min(timestamps),max(timestamps)])
@@ -17,7 +17,7 @@ set(gca,'YDir','normal')
 xlabel('Date')
 ylabel('Frequency (Hz)')
 
-figure(2)
+figure(999)
 surf(timestamps,freqs,specs','EdgeColor','none')
 datetick('x')
 xlim([min(timestamps),max(timestamps)])
@@ -25,7 +25,7 @@ xlabel('Date')
 ylabel('Frequency (Hz)')
 
 
-% if necessary, reduce size of PSD array by averaging time chunks and
+% if necessary, reduce size of PSD array by time averaging and
 % downsampling frequency resolution
 %
 % average n-sized time chunks

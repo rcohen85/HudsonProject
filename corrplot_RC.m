@@ -280,7 +280,7 @@ end
 % Truncate variable names to first five characters for display:
 
 varNames = cellfun(@(s)[s,'         '],varNames,'UniformOutput',false);
-varNames = cellfun(@(s)s(1:5),varNames,'UniformOutput',false);
+varNames = cellfun(@(s)s(1:6),varNames,'UniformOutput',false);
 
 % Compute plot information:
 

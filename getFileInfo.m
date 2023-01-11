@@ -1,7 +1,7 @@
 % bigStats = []; 
-inDir = 'W:\projects\2022_NOAA-NERRS(UMich)_HudsonNY_144488\AcousticData\BlackCreek\Swift\WAVE\BC05';
+inDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\AcousticData_FLAC\ShrtSturWnt\ST300\SS04';
 % depName = '';
-fileList = dir(fullfile(inDir,'*.wav'));
+fileList = dir(fullfile(inDir,'*.flac'));
 badFiles = [];
 badFiles = find(vertcat(fileList.bytes)==0);
 if ~isempty(badFiles)

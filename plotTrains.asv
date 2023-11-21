@@ -1,0 +1,49 @@
+
+inDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\ShortStur\SelectionTables\NorriePoint_Trains';
+fileStr = '*Train_selections.txt';
+
+fileList = dir(fullfile(inDir,fileStr));
+Trains = struct();
+for i = 1:length(fileList)
+    
+    % read selection table
+    tb = readtable(fullfile(inDir,fileList(i).name),'Delimiter','tab','VariableNamingRule','preserve');
+
+    % remove duplicate views
+    specs = find(strcmp(table2array(tb(:,'View')),'Spectrogram 1'));
+    tb = tb(specs,:);
+
+    % get times
+    timeStrs = regexp(table2array(tb(:,'Begin File')),'\d{8}_\d{6}','match');
+    fileStarts = (datetime([timeStrs{:}],'InputFormat','yyyyMMdd_HHmmss'))';
+
+    % detection start datetimes
+    detSt = fileStarts + seconds(table2array(tb(:,'Begin Time (s)')));
+
+    % get durations
+    durs = table2array(tb(:,'End Time (s)')) - table2array(tb(:,'Begin Time (s)'));
+
+    % detection end datetimes
+    detEnd = detSt + seconds(durs);
+
+    % detection start times
+    stTime = datetime(0,0,0,hour(detSt),minute(detSt),second(detSt));
+
+    % detection end times
+    
+
+    if i==1
+        Trains.StartDt = detSt;
+        Trains.EndDt = detEnd;
+        Trains.Dur = durs;
+    else
+        Trains.StartDt = [Trains.Start;detSt];
+        Trains.EndDt = [Trains.End;detEnd];
+        Trains.Dur = [Trains.Dur;durs];
+    end
+
+end
+
+figure(99)
+plot(Trains.Start,Trains.Dur,'.','MarkerSize',40)
+

@@ -1,0 +1,117 @@
+% Add cluster identity, from Triton Cluster Tool remora, into selection
+% tables as annotation column "Label". If no Label column exists, one will
+% be added to each selection table. If a Label column already exists, 
+
+
+% directory containing ID1 files output as part of the post-clustering options
+labDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\ShortStur\Clusters\SS03\CompositeClusters\TPWS_labels'; 
+% directory containing selection tables to be updated
+selTableDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\ShortStur\SelectionTables\SS03\Unlabeled'; 
+% directory to save updated selection tables; if empty, tables in selTableDir will be overwritten
+outDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\ShortStur\SelectionTables\SS03'; 
+% label file name wildcard
+labID = '*ID1.mat';
+% end date of deployment
+depEnd = '2022-03-30 00:00:00'; 
+
+%% 
+labList = dir(fullfile(labDir,labID));
+selList = dir(fullfile(selTableDir,'*.txt'));
+% if necessary, create output directory
+if ~exist(outDir,'dir')
+    fprintf('Creating output directory %s\n',outDir)
+    mkdir(outDir)
+end
+
+% get time intervals covered by each selection table (assumes each table
+% contains detections within time period bounded by that table's file name
+% time stamp and the next table's file name timestamp)
+fileTimes = regexp(cellstr(vertcat(selList.name)),'\d{8}_\d{6}','match');
+fileTimes = string(fileTimes);
+fileTimes = datetime(fileTimes,'InputFormat','yyyyMMdd_HHmmss');
+fileTimes = [fileTimes;datetime(depEnd)];
+
+% Loop through ID1 files, find which selection table(s) contain
+% those detections, loop through relevant selection tables and add cluster
+% labels as new annotation field/update existing Label field
+
+selTabsDone = [];
+
+for i=1:length(labList)
+
+    load(fullfile(labDir,labList(i).name));
+    zID = sortrows(zID,1);
+    labTimes = datetime(zID(:,1),'ConvertFrom','datenum');
+    labels = cellfun(@(x) erase(x,'Cluster'),labels,'UniformOutput',false);
+    newAnnot = cell(size(zID,1),1);
+
+    for k = 1:length(labels)
+        lab = labels{1,k};
+        idx = find(zID(:,2)==k);
+        newAnnot(idx) = cellstr(lab);
+    end
+
+    % find which selection tables these labels are in
+    [N,fileTimes,bin] = histcounts(labTimes,fileTimes);
+    selTables = unique(bin);
+    selTables(selTables==0) = [];
+    selTabsDone = [selTabsDone;selTables];
+    labTimes(bin==0) = [];
+    bin(bin==0) = [];
+
+    for j = 1:length(selTables) % for each selection table
+        
+        % open selection table
+        thisTable = readtable(fullfile(selTableDir,selList(selTables(j)).name),'Delimiter','\t','VariableNamingRule','preserve');      
+
+        % Get times of selections
+        selTimes = table2array(thisTable(:,'Begin Time (s)'));
+        
+        % find labels which belong in this table
+        theseLabInds = find(bin==selTables(j));
+        theseLabs = newAnnot(theseLabInds);
+
+        % convert label absolute timestamps to offsets from start of file (s)
+        theseLabTimes = seconds(labTimes(theseLabInds) - fileTimes(selTables(j)));
+
+        % find where these labels belong in the selection table
+        [Lia,Locb] = ismembertol(theseLabTimes,selTimes,1e-5,'DataScale',1);
+        theseLabTimes(Lia==0) = [];
+        theseLabs(Lia==0) = [];
+        Locb(Lia==0) = [];
+        Lia = find(Lia); % convert logicals to indices (gets rid of 0s)
+
+        % Update labels/add new label column into selection table
+        thisTable.Label(Locb) = theseLabs;
+
+        % Save updated selection table
+        if isempty(outDir)
+        saveName = fullfile(fullfile(selTableDir,selList(selTables(j)).name));
+        else
+            saveName = fullfile(fullfile(outDir,selList(selTables(j)).name));
+        end
+        writetable(thisTable,saveName,'Delimiter','\t');
+
+        thisTable = [];
+
+    end
+
+    zID = [];
+    newAnnot = [];
+    labTimes = [];
+    selTables = [];
+    bin = [];
+
+end
+
+
+% if saving to new directory, also copy non-altered selection tables to 
+% retain unlabeled detections
+
+tablesNotDone = setdiff(1:length(selList),selTabsDone);
+if ~isempty(tablesNotDone) && ~isempty(outDir)
+    for i = 1:length(tablesNotDone)
+        saveName = fullfile(fullfile(outDir,selList(tablesNotDone(1)).name));
+        copyfile(fullfile(selTableDir,selList(tablesNotDone(1)).name),saveName);
+    end
+end

@@ -7,7 +7,7 @@
 #
 # Modified from original soundecology function acoustic_complexity by RC 1/23
 #
-ACI_RC <- function(soundfile, min_freq = NA, max_freq = NA, j = 5, fft_w = 512){
+ACI_RC <- function(soundfile, min_freq = NA, max_freq = NA, j = 5, fft_w = 512,...){
   
   #test arguments
   if (is.na(max_freq)){
@@ -203,12 +203,12 @@ ACI_RC <- function(soundfile, min_freq = NA, max_freq = NA, j = 5, fft_w = 512){
     
   } else 
   {
-    cat("\n This is a mono file.\n")
+    # cat("\n This is a mono file.\n")
     
     left<-channel(soundfile, which = c("left"))
     
     #matrix of values
-    cat("\n Calculating index. Please wait... \n\n")
+    # cat("\n Calculating index. Please wait... \n\n")
     spec_left <- spectro(left, f = samplingrate, wl = wlen, plot = FALSE, norm = TRUE, dB = NULL, scale = FALSE, wn = "hamming")
     
     specA_left <- spec_left$amp
@@ -239,7 +239,9 @@ ACI_RC <- function(soundfile, min_freq = NA, max_freq = NA, j = 5, fft_w = 512){
     delta_fl <- ( max_freq - min_freq ) / specA_rows
     delta_tk <- (length(soundfile@left)/soundfile@samp.rate) / specA_cols
     
-    no_j <- floor(duration / j)
+    if(duration>=j){
+    no_j <- floor(duration / j)}else{no_j=1 
+    j=duration}
     #q <- specA_rows
     #m <- floor(duration / j)
     
@@ -248,11 +250,13 @@ ACI_RC <- function(soundfile, min_freq = NA, max_freq = NA, j = 5, fft_w = 512){
     
     ACI_left_vals <- rep(NA, no_j)
     ACI_fl_left_vector <- rep(NA, specA_rows)
-    ACI_left_matrix <- data.frame(matrix(NA, nrow = specA_rows, ncol = no_j))
+    # ACI_left_matrix <- data.frame(matrix(NA, nrow = specA_rows, ncol = no_j))
+    ACI_left_matrix <- data.frame(matrix(NA, nrow = no_j, ncol = specA_rows))
     
     ACI_right_vals <- rep(NA, no_j)
     ACI_fl_right_vector <- rep(NA, specA_rows)
-    ACI_right_matrix <- data.frame(matrix(NA, nrow = specA_rows, ncol = no_j))
+    # ACI_right_matrix <- data.frame(matrix(NA, nrow = specA_rows, ncol = no_j))
+    ACI_right_matrix <- data.frame(matrix(NA, nrow = no_j, ncol = specA_rows))
     
     #Left channel
     #For each frequency bin fl
@@ -266,7 +270,8 @@ ACI_RC <- function(soundfile, min_freq = NA, max_freq = NA, j = 5, fft_w = 512){
         D <- get_d(specA_left, q_index, min_col, max_col)
         sum_I <- sum(specA_left[q_index, min_col:max_col])
         ACI_left_vals[j_index] <- D / sum_I
-        ACI_left_matrix[q_index, j_index] <- D / sum_I
+        # ACI_left_matrix[q_index, j_index] <- D / sum_I
+        ACI_left_matrix[j_index,q_index] <- D / sum_I
       }
       
       ACI_fl_left_vector[q_index] <- sum(ACI_left_vals)
@@ -278,14 +283,14 @@ ACI_RC <- function(soundfile, min_freq = NA, max_freq = NA, j = 5, fft_w = 512){
     ACI_tot_right <- NA
     ACI_tot_right_by_min <- NA
     
-    cat("  Acoustic Complexity Index (total): ")
-    cat(ACI_tot_left)
-    cat("\n\n")
-    if (duration > 60){
-      cat("  Acoustic Complexity Index (by minute): ")
-      cat(ACI_tot_left_by_min)
-      cat("\n\n")
-    }
+    # cat("  Acoustic Complexity Index (total): ")
+    # cat(ACI_tot_left)
+    # cat("\n\n")
+    # if (duration > 60){
+    #   cat("  Acoustic Complexity Index (by minute): ")
+    #   cat(ACI_tot_left_by_min)
+    #   cat("\n\n")
+    # }
   }
   
   invisible(list(AciTotAll_left = ACI_tot_left, AciTotAll_right = ACI_tot_right, 

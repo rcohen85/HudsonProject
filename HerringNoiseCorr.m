@@ -15,13 +15,13 @@ weirSets21 = table2array(fishData21(:,'daySet'))+days(table2array(fishData21(:,'
 weirPulls21 = table2array(fishData21(:,'dayPull'))+days(table2array(fishData21(:,'timePull')));
 
 % quick plot to check that data is continuous, no gaps (start of each set is end of previous set)
-figure(1)
+figure(1), clf
 plot(weirSets20,ones(length(weirSets20),1),'o')
 hold on
 plot(weirPulls20,ones(length(weirPulls20),1),'*')
 hold off
 
-figure(2)
+figure(2), clf
 plot(weirSets21,ones(length(weirSets21),1),'o')
 hold on
 plot(weirPulls21,ones(length(weirPulls21),1),'*')
@@ -31,15 +31,18 @@ disp('Examine plots for data continuity, then press any key to continue')
 pause;
 
 % calculate average fish/hr/day
-weirDurs20 = hours(split(between(weirSets20,weirPulls20),'Time'));
-weirDurs20(:,2) = floor(weirDurs20(:,1));
-weirDurs20(:,3) = rem(weirDurs20(:,1),1);
+% weirDurs20 = hours(split(between(weirSets20,weirPulls20),'Time'));
+% [weirDays20, weirTimes20] = split(between(weirSets20,weirPulls20,{'days','time'}),{'days','time'});
+% weirDurs20 = hours(duration(cellstr(strcat(num2str(weirDays20),':',char(weirTimes20)))));
+% weirDurs20(:,2) = floor(weirDurs20(:,1));
+% weirDurs20(:,3) = rem(weirDurs20(:,1),1);
 allHours20 = (dateshift(weirSets20(1),'start','hour'):hours(1):dateshift(weirPulls20(end),'end','hour'))';
 hourlyCounts20 = zeros(length(allHours20),1);
 
-weirDurs21 = hours(split(between(weirSets21,weirPulls21),'Time'));
-weirDurs21(:,2) = floor(weirDurs21(:,1));
-weirDurs21(:,3) = rem(weirDurs21(:,1),1);
+% [weirDays21, weirTimes21] = split(between(weirSets21,weirPulls21,{'days','time'}),{'days','time'});
+% weirDurs21 = hours(duration(cellstr(strcat(num2str(weirDays21),':',char(weirTimes21)))));
+% weirDurs21(:,2) = floor(weirDurs21(:,1));
+% weirDurs21(:,3) = rem(weirDurs21(:,1),1);
 allHours21 = (dateshift(weirSets21(1),'start','hour'):hours(1):dateshift(weirPulls21(end),'end','hour'))';
 hourlyCounts21 = zeros(length(allHours21),1);
 
@@ -95,13 +98,15 @@ for i = 1:length(weirSets21)
     end
 end
 
-% Tally fish counts per day (only for days with 100% effort)
+% Tally fish counts per day (only for days with 100% effort, not day of deployment or day of recovery)
 dayBins20 = dateshift(weirSets20(1),'end','day'):days(1):dateshift(weirPulls20(end),'start','day');
 dayBins21 = dateshift(weirSets21(1),'end','day'):days(1):dateshift(weirPulls21(end),'start','day');
 [N, dayBins,fishBin20] = histcounts(allHours20,dayBins20);
 [N, dayBins,fishBin21] = histcounts(allHours21,dayBins21);
-dailyFishCounts20 = grpstats(table(hourlyCounts20,fishBin20),'fishBin20','sum');
-dailyFishCounts21 = grpstats(table(hourlyCounts21,fishBin21),'fishBin21','sum');
+% dailyFishCounts20 = grpstats(table(hourlyCounts20,fishBin20),'fishBin20','sum');
+% dailyFishCounts21 = grpstats(table(hourlyCounts21,fishBin21),'fishBin21','sum');
+dailyFishCounts20 = grpstats(table(hourlyCounts20,fishBin20),'fishBin20','mean');
+dailyFishCounts21 = grpstats(table(hourlyCounts21,fishBin21),'fishBin21','mean');
 
 fishDates = [dayBins20(1:(end-1))';dayBins21(1:(end-1))'];
 dailyFishCounts = [table2array(dailyFishCounts20(2:end,3));table2array(dailyFishCounts21(2:end,3))]; % hours in bin zero were from partial effort days, disregard
@@ -155,42 +160,6 @@ noiseDates = dayBins(dailyBBlevels.BBbin(fullDays));
 dailyNoiseData = [table2array(dailyBBlevels(fullDays,3)),table2array(dailyOlevels(fullDays,3)),table2array(dailyTOlevels(fullDays,3))];
 noiseBands = ['BB',OCenters,TOCenters];
 
-
-%% Calculate correlation w soundscape metrics
-% Align dates and create matrix of counts, soundscape metrics, and environmental covariates
-sharedDates = intersect(fishDates,noiseDates);
-fishInd = ismember(fishDates,sharedDates);
-noiseInd = ismember(noiseDates,sharedDates);
-
-fishNoiseMat = [dailyFishCounts(fishInd),dailyNoiseData(noiseInd,:)];
-fishNoiseTable = array2table(fishNoiseMat,'VariableNames',['FishCounts',noiseBands]);
-% dataTable = array2table(dataMat);
-
-% Compute correlation matrix and plot (2 approaches)
-figure(1), clf % heatmap w correlation coefficient
-hotCold = interp1([-1,0,1]',[204 0 0; 255 255 255; 0 0 204]./255,linspace(-1,1,51));
-c = corr(fishNoiseMat);
-isupper = logical(triu(ones(size(c)),1));
-c(isupper) = NaN;
-h = heatmap(c,'MissingDataColor','w');
-colormap(hotCold)
-clim([-1 1])
-labels = ['FishCounts',noiseBands];
-h.XDisplayLabels = labels;
-h.YDisplayLabels = labels;
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\FishCounts_Noise_Corr1.fig')
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\FishCounts_Noise_Corr1.png')
-
-figure(2), clf % scatter plots w regression line & correlation coefficient
-[Cr,~,h] = corrplot_RC(fishNoiseTable);
-islower = logical(tril(ones(size(Cr)),-1));
-mirrors = find(islower == 1);
-for i=1:size(mirrors)
-    delete(subplot(31,31,mirrors(i)));    
-end
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\FishCounts_Noise_Corr2.fig')
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\FishCounts_Noise_Corr2.png')
-
 %% Import in environmental data
 % meteorological data
 metData = readtable('C:\Users\rec297\CCB\HudsonProject\NERRS_MeteorologicalData\HUDNPMET.csv');
@@ -216,6 +185,115 @@ dailyWaterVals = grpstats([waterData(waterDatesInd,[7,15,17,21,23]),table(waterB
 dailyWaterVals.Properties.VariableNames(3:7) = {'WatTmp','DO','Depth','pH','Turb'};
 watDays = watDayBins(1:(end-1));
 
+%% Import acoustic indices
+ ACI = [readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC02ACI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC04ACI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC05ACI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC06ACI.csv');];
+ACIdates = datetime(extractBefore(extractAfter(table2array(ACI(:,1)),'_'),'.wav'),'InputFormat','yyyyMMdd_HHmmss');
+ACI.LEFT_CHANNEL = ACI.LEFT_CHANNEL./(ACI.DURATION/60); % normalize by duration of each file, to make values directly comparable
+
+BI = [readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC02BI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC04BI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC05BI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC06BI.csv');];
+BIdates = datetime(extractBefore(extractAfter(table2array(BI(:,1)),'_'),'.wav'),'InputFormat','yyyyMMdd_HHmmss'); 
+
+ADI = [readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC02ADI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC04ADI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC05ADI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC06ADI.csv');];
+ADIdates = datetime(extractBefore(extractAfter(table2array(ADI(:,1)),'_'),'.wav'),'InputFormat','yyyyMMdd_HHmmss'); 
+
+AEI = [readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC02AEI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC04AEI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC05AEI.csv');
+     readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\SoundscapeMetrics\BlackCreek\BC06AEI.csv');];
+AEIdates = datetime(extractBefore(extractAfter(table2array(AEI(:,1)),'_'),'.wav'),'InputFormat','yyyyMMdd_HHmmss'); 
+
+
+% Compute daily averaged acoustic indices
+ACIdayBins = dateshift(ACIdates(1),'start','day'):1:dateshift(ACIdates(end),'end','day');
+[N, ACIdayBins,ACIbin] = histcounts(ACIdates,ACIdayBins);
+dailyACIlevels = grpstats(table(ACI.LEFT_CHANNEL,ACIbin),'Var2','mean');
+ACIdays = ACIdayBins(dailyACIlevels.Var2);
+
+BIdayBins = dateshift(BIdates(1),'start','day'):1:dateshift(BIdates(end),'end','day');
+[N, BIdayBins,BIbin] = histcounts(BIdates,BIdayBins);
+dailyBIlevels = grpstats(table(BI.LEFT_CHANNEL,BIbin),'Var2','mean');
+BIdays = BIdayBins(dailyBIlevels.Var2);
+
+ADIdayBins = dateshift(ADIdates(1),'start','day'):1:dateshift(ADIdates(end),'end','day');
+[N, ADIdayBins,ADIbin] = histcounts(ADIdates,ADIdayBins);
+dailyADIlevels = grpstats(table(ADI.LEFT_CHANNEL,ADIbin),'Var2','mean');
+ADIdays = ADIdayBins(dailyADIlevels.Var2);
+
+AEIdayBins = dateshift(AEIdates(1),'start','day'):1:dateshift(AEIdates(end),'end','day');
+[N, AEIdayBins,AEIbin] = histcounts(AEIdates,AEIdayBins);
+dailyAEIlevels = grpstats(table(AEI.LEFT_CHANNEL,AEIbin),'Var2','mean');
+AEIdays = AEIdayBins(dailyAEIlevels.Var2);
+
+% only retain days with 100% effort
+fullDays = find(dailyAEIlevels.GroupCount==24);
+AIDates = AEIdayBins(dailyAEIlevels.Var2(fullDays));
+dailyAIData = [table2array(dailyACIlevels(fullDays,3)),table2array(dailyADIlevels(fullDays,3)),table2array(dailyAEIlevels(fullDays,3)),table2array(dailyBIlevels(fullDays,3))];
+AIs = {'ACI','ADI','AEI','BI'};
+
+%% Calculate correlation btwn fish counts & soundscape metrics
+% Align dates and create matrix of counts, soundscape metrics, and environmental covariates
+sharedDates = intersect(fishDates,noiseDates);
+fishInd = ismember(fishDates,sharedDates);
+noiseInd = ismember(noiseDates,sharedDates);
+
+fishNoiseMat = [dailyFishCounts(fishInd),dailyNoiseData(noiseInd,:)];
+% fishNoiseTable = array2table(fishNoiseMat,'VariableNames',['FishCounts',noiseBands]);
+
+% normalize (value ranges of different metrics vary by several orders of
+% magnitude, not directly comparable)
+norm_fishNoiseMat = normalize(fishNoiseMat,1,'range');
+norm_fishNoiseTable = array2table(norm_fishNoiseMat,'VariableNames',['FishCounts',noiseBands]);
+
+% Plot timeseries
+C = linspecer(31);
+figure(99)
+axes('NextPlot','replacechildren','ColorOrder',C);
+set(gcf,'Position',[50 100 1400 700])
+plot(sharedDates,norm_fishNoiseMat(:,1),'LineWidth',3)
+hold on
+plot(sharedDates,norm_fishNoiseMat(:,2:end),':','LineWidth',2)
+legend(['FishCounts',noiseBands])
+hold off
+xlim([datetime('2021-03-28'), datetime('2021-06-01')])
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Noise_Timeseries.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Noise_Timeseries.png')
+
+% Compute correlation matrix and plot (2 approaches)
+figure(1), clf % heatmap w correlation coefficient
+set(gcf,'Position',[50 50 1800 1100])
+hotCold = interp1([-1,0,1]',[204 0 0; 255 255 255; 0 0 204]./255,linspace(-1,1,51));
+c = corr(norm_fishNoiseMat);
+isupper = logical(triu(ones(size(c)),1));
+c(isupper) = NaN;
+h = heatmap(c,'MissingDataColor','w','CellLabelFormat','%.2f');
+colormap(hotCold)
+clim([-1 1])
+labels = ['FishCounts',noiseBands];
+h.XDisplayLabels = labels;
+h.YDisplayLabels = labels;
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Noise_Corr1.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Noise_Corr1.png')
+
+figure(2), clf % scatter plots w regression line & correlation coefficient
+set(gcf,'Position',[50 50 1800 1100])
+[Cr,~,h] = corrplot_RC(norm_fishNoiseTable);
+islower = logical(tril(ones(size(Cr)),-1));
+mirrors = find(islower == 1);
+for i=1:size(mirrors)
+    delete(subplot(31,31,mirrors(i)));    
+end
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Noise_Corr2.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Noise_Corr2.png')
+
 %% Calculate correlation btwn fish counts & environmental data
 % align dates
 envDates = intersect(metDays,watDays);
@@ -230,12 +308,40 @@ metInd = ismember(metDays,sharedDates);
 watInd = ismember(watDays,sharedDates);
 
 fishEnvMat = [dailyFishCounts(fishInd),table2array(dailyWaterVals(watInd,3:7)),table2array(dailyMetVals(metInd,3:7))];
-fishEnvTable = array2table(fishEnvMat,'VariableNames',['FishCounts',dailyWaterVals.Properties.VariableNames(3:7),dailyMetVals.Properties.VariableNames(3:7)]);
+% fishEnvTable = array2table(fishEnvMat,'VariableNames',['FishCounts',dailyWaterVals.Properties.VariableNames(3:7),dailyMetVals.Properties.VariableNames(3:7)]);
+
+% normalize (value ranges of different metrics vary by several orders of
+% magnitude, not directly comparable)
+norm_fishEnvMat = normalize(fishEnvMat,1,'range');
+norm_fishEnvTable = array2table(norm_fishEnvMat,'VariableNames',['FishCounts',dailyWaterVals.Properties.VariableNames(3:7),dailyMetVals.Properties.VariableNames(3:7)]);
+
+% Plot timeseries
+figure(999),clf
+set(gcf,'Position',[50 100 1400 800])
+subplot(2,1,1)
+% axes('NextPlot','replacechildren','ColorOrder',C);
+plot(sharedDates,norm_fishEnvMat(:,1),'LineWidth',3)
+hold on
+plot(sharedDates,norm_fishEnvMat(:,2:6),':','LineWidth',2)
+legend(['FishCounts',dailyWaterVals.Properties.VariableNames(3:7)])
+hold off
+xlim([datetime('2021-03-28'), datetime('2021-06-01')])
+subplot(2,1,2)
+% axes('NextPlot','replacechildren','ColorOrder',C);
+plot(sharedDates,norm_fishEnvMat(:,1),'LineWidth',3)
+hold on
+plot(sharedDates,norm_fishEnvMat(:,7:end),':','LineWidth',2)
+legend(['FishCounts',dailyMetVals.Properties.VariableNames(3:7)])
+hold off
+xlim([datetime('2021-03-28'), datetime('2021-06-01')])
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Env_Timeseries.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Env_Timeseries.png')
 
 % Compute correlation matrix and plot (2 approaches)
 figure(3), clf % heatmap w correlation coefficient
+set(gcf,'Position',[50 50 1050 800])
 hotCold = interp1([-1,0,1]',[204 0 0; 255 255 255; 0 0 204]./255,linspace(-1,1,51));
-c = corr(fishEnvMat);
+c = corr(norm_fishEnvMat);
 isupper = logical(triu(ones(size(c)),1));
 c(isupper) = NaN;
 h = heatmap(c,'MissingDataColor','w');
@@ -244,18 +350,19 @@ clim([-1 1])
 labels = ['FishCounts',dailyWaterVals.Properties.VariableNames(3:7),dailyMetVals.Properties.VariableNames(3:7)];
 h.XDisplayLabels = labels;
 h.YDisplayLabels = labels;
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\FishCounts_Env_Corr1.fig')
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\FishCounts_Env_Corr1.png')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Env_Corr1.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Env_Corr1.png')
 
 figure(4), clf % scatter plots w regression line & correlation coefficient
-[Cr,~,h] = corrplot_RC(fishEnvTable);
+set(gcf,'Position',[50 50 1050 800])
+[Cr,~,h] = corrplot_RC(norm_fishEnvTable);
 islower = logical(tril(ones(size(Cr)),-1));
 mirrors = find(islower == 1);
 for i=1:size(mirrors)
     delete(subplot(11,11,mirrors(i)));    
 end
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\FishCounts_Env_Corr2.fig')
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\FishCounts_Env_Corr2.png')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Env_Corr2.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_Env_Corr2.png')
 
 %% Calculate correlation btwn soundscape metrics & environmental data
 sharedDates = intersect(noiseDates,watDays);
@@ -263,12 +370,17 @@ noiseInd = ismember(noiseDates,sharedDates);
 watInd = ismember(watDays,sharedDates); % can use same indices for meteorological data, since the date vectors were aligned above
 
 envNoiseMat = [dailyNoiseData(noiseInd,:),table2array(dailyWaterVals(watInd,3:7)),table2array(dailyMetVals(watInd,3:7))];
-envNoiseTable = array2table(envNoiseMat,'VariableNames',[noiseBands,dailyWaterVals.Properties.VariableNames(3:7),dailyMetVals.Properties.VariableNames(3:7)]);
+
+% normalize (value ranges of different metrics vary by several orders of
+% magnitude, not directly comparable)
+norm_envNoiseMat = normalize(envNoiseMat,1,'range');
+norm_envNoiseTable = array2table(norm_envNoiseMat,'VariableNames',[noiseBands,dailyWaterVals.Properties.VariableNames(3:7),dailyMetVals.Properties.VariableNames(3:7)]);
 
 % Compute correlation matrix and plot (2 approaches)
 figure(5), clf % heatmap w correlation coefficient
+set(gcf,'Position',[50 50 1800 1100])
 hotCold = interp1([-1,0,1]',[204 0 0; 255 255 255; 0 0 204]./255,linspace(-1,1,51));
-c = corr(envNoiseMat);
+c = corr(norm_envNoiseMat);
 isupper = logical(triu(ones(size(c)),1));
 c(isupper) = NaN;
 h = heatmap(c,'MissingDataColor','w','CellLabelFormat','%.2f');
@@ -277,23 +389,155 @@ clim([-1 1])
 labels = [noiseBands,dailyWaterVals.Properties.VariableNames(3:7),dailyMetVals.Properties.VariableNames(3:7)];
 h.XDisplayLabels = labels;
 h.YDisplayLabels = labels;
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Noise_Env_Corr1.fig')
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Noise_Env_Corr1.png')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\Noise_Env_Corr1.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\Noise_Env_Corr1.png')
 
 figure(6), clf % scatter plots w regression line & correlation coefficient
-[Cr,~,h] = corrplot_RC(envNoiseTable);
+set(gcf,'Position',[50 50 1800 1100])
+[Cr,~,h] = corrplot_RC(norm_envNoiseTable);
 islower = logical(tril(ones(size(Cr)),-1));
 mirrors = find(islower == 1);
 for i=1:size(mirrors)
     delete(subplot(40,40,mirrors(i)));    
 end
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Noise_Env_Corr2.fig')
-saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Noise_Env_Corr2.png')
-
-%% Import acoustic indices
-
-
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\Noise_Env_Corr2.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\Noise_Env_Corr2.png')
 
 %% Calcuate correlation btwn fish counts & acoustic indices
+% align dates
+sharedDates = intersect(fishDates,AIDates);
+fishInd = ismember(fishDates,sharedDates);
+AIind = ismember(AIDates,sharedDates);
+
+fishAIMat = [dailyFishCounts(fishInd),dailyAIData(AIind,:)];
+% fishAITable = array2table(fishAIMat,'VariableNames',['FishCounts',AIs]);
+
+% normalize (value ranges of different metrics vary by several orders of
+% magnitude, not directly comparable)
+norm_fishAIMat = normalize(fishAIMat,1,'range');
+norm_fishAITable = array2table(norm_fishAIMat,'VariableNames',['FishCounts',AIs]);
+
+% Plot timeseries
+C = linspecer(5);
+
+figure(9999), clf
+axes('NextPlot','replacechildren','ColorOrder',C);
+set(gcf,'Position',[50 100 1400 700])
+plot(sharedDates,norm_fishAIMat(:,1),'LineWidth',3)
+hold on
+plot(sharedDates,norm_fishAIMat(:,2:end),':','LineWidth',2)
+legend(['FishCounts',AIs])
+hold off
+xlim([datetime('2021-03-28'), datetime('2021-06-01')])
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_AIs_Timeseries.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_AIs_Timeseries.png')
+
+% Compute correlation matrix and plot (2 approaches)
+figure(7), clf % heatmap w correlation coefficient
+set(gcf,'Position',[50 50 800 600])
+hotCold = interp1([-1,0,1]',[204 0 0; 255 255 255; 0 0 204]./255,linspace(-1,1,51));
+c = corr(norm_fishAIMat);
+isupper = logical(triu(ones(size(c)),1));
+c(isupper) = NaN;
+h = heatmap(c,'MissingDataColor','w');
+colormap(hotCold)
+clim([-1 1])
+labels = ['FishCounts',AIs];
+h.XDisplayLabels = labels;
+h.YDisplayLabels = labels;
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_AI_Corr1.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_AI_Corr1.png')
+
+figure(8), clf % scatter plots w regression line & correlation coefficient
+set(gcf,'Position',[50 50 800 600])
+[Cr,~,h] = corrplot_RC(norm_fishAITable);
+islower = logical(tril(ones(size(Cr)),-1));
+mirrors = find(islower == 1);
+for i=1:size(mirrors)
+    delete(subplot(5,5,mirrors(i)));    
+end
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_AI_Corr2.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\FishCounts_AI_Corr2.png')
+
 
 %% Calculate correltion btwn acoustic indices & environmental data
+sharedDates = intersect(AIDates,watDays);
+AIind = ismember(AIDates,sharedDates);
+watInd = ismember(watDays,sharedDates); % can use same indices for meteorological data, since the date vectors were aligned above
+
+envAIMat = [dailyAIData(AIind,:),table2array(dailyWaterVals(watInd,3:7)),table2array(dailyMetVals(watInd,3:7))];
+% envAITable = array2table(envAIMat,'VariableNames',[AIs,dailyWaterVals.Properties.VariableNames(3:7),dailyMetVals.Properties.VariableNames(3:7)]);
+
+% normalize (value ranges of different metrics vary by several orders of
+% magnitude, not directly comparable)
+norm_envAIMat = normalize(envAIMat,1,'range');
+norm_envAITable = array2table(norm_envAIMat,'VariableNames',[AIs,dailyWaterVals.Properties.VariableNames(3:7),dailyMetVals.Properties.VariableNames(3:7)]);
+
+% Compute correlation matrix and plot (2 approaches)
+figure(9), clf % heatmap w correlation coefficient
+set(gcf,'Position',[50 50 1150 900])
+hotCold = interp1([-1,0,1]',[204 0 0; 255 255 255; 0 0 204]./255,linspace(-1,1,51));
+c = corr(norm_envAIMat);
+isupper = logical(triu(ones(size(c)),1));
+c(isupper) = NaN;
+h = heatmap(c,'MissingDataColor','w','CellLabelFormat','%.2f');
+colormap(hotCold)
+clim([-1 1])
+labels = [AIs,dailyWaterVals.Properties.VariableNames(3:7),dailyMetVals.Properties.VariableNames(3:7)];
+h.XDisplayLabels = labels;
+h.YDisplayLabels = labels;
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\AI_Env_Corr1.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\AI_Env_Corr1.png')
+
+figure(10), clf % scatter plots w regression line & correlation coefficient
+set(gcf,'Position',[50 50 1150 900])
+[Cr,~,h] = corrplot_RC(norm_envAITable);
+islower = logical(tril(ones(size(Cr)),-1));
+mirrors = find(islower == 1);
+for i=1:size(mirrors)
+    delete(subplot(14,14,mirrors(i)));    
+end
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\AI_Env_Corr2.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\AI_Env_Corr2.png')
+
+%% Calculate correltion btwn acoustic indices & soundscape metrics
+sharedDates = intersect(AIDates,noiseDates);
+AIind = ismember(AIDates,sharedDates);
+noiseInd = ismember(noiseDates,sharedDates); % can use same indices for meteorological data, since the date vectors were aligned above
+
+noiseAIMat = [dailyAIData(AIind,:),dailyNoiseData(noiseInd,:)];
+% noiseAITable = array2table(noiseAIMat,'VariableNames',[AIs,noiseBands]);
+
+% normalize (value ranges of different metrics vary by several orders of
+% magnitude, not directly comparable)
+norm_noiseAIMat = normalize(noiseAIMat,1,'range');
+norm_noiseAITable = array2table(norm_noiseAIMat,'VariableNames',[AIs,noiseBands]);
+
+% Compute correlation matrix and plot (2 approaches)
+figure(11), clf % heatmap w correlation coefficient
+set(gcf,'Position',[50 50 1800 1100])
+hotCold = interp1([-1,0,1]',[204 0 0; 255 255 255; 0 0 204]./255,linspace(-1,1,51));
+c = corr(norm_noiseAIMat);
+isupper = logical(triu(ones(size(c)),1));
+c(isupper) = NaN;
+h = heatmap(c,'MissingDataColor','w','CellLabelFormat','%.2f');
+colormap(hotCold)
+clim([-1 1])
+labels = [AIs,noiseBands];
+h.XDisplayLabels = labels;
+h.YDisplayLabels = labels;
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\AI_Noise_Corr1.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\AI_Noise_Corr1.png')
+
+figure(12), clf % scatter plots w regression line & correlation coefficient
+set(gcf,'Position',[50 50 1800 1100])
+[Cr,~,h] = corrplot_RC(norm_noiseAITable);
+islower = logical(tril(ones(size(Cr)),-1));
+mirrors = find(islower == 1);
+for i=1:size(mirrors)
+    delete(subplot(34,34,mirrors(i)));    
+end
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\AI_Noise_Corr2.fig')
+saveas(gcf,'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\BC_Herring\Correlation Plots\AI_Noise_Corr2.png')
+
+

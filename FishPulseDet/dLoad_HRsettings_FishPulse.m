@@ -53,10 +53,10 @@ parametersHR.guidedDetector = 0; % set to 1 for guided detections.
 
 %%% FILE EXTENSION %%%%%%
 % need this in here in case short time detector is not run
-parametersHR.REFileExt = '.wav';%  expression to match file extension
+parametersHR.REFileExt = '.flac';%  expression to match file extension
 
-%%% WAV FILE NAMING OPTION %%%%%%%%
-% if you're using wav files that have a time stamp in the name, put a
+%%% FILE NAMING OPTION %%%%%%%%
+% if you're using files that have a time stamp in the name, put a
 % regular expression for extracting that here:
 parametersHR.DateRE = '_(\d*)_(\d*)';
 

@@ -1,5 +1,5 @@
 labDir = 'E:\S1099Hokkaido01_S01_RH403_WAV\SPICE_detector\clusters_below80K_3\cc10\TPWS_labels';
-textDir = 'E:\S1099Hokkaido01_S01_RH403_WAV\SPICE_detector\clusters_below80K_3\cc10';
+saveDir = 'E:\S1099Hokkaido01_S01_RH403_WAV\SPICE_detector\clusters_below80K_3\cc10';
 saveName = 'S1099_below80K_Odontoceti_LOSpecific_labels';
 
 labList = dir(fullfile(labDir,'*.mat'));
@@ -26,4 +26,4 @@ for i = 1:length(labList)
 
 end
 
-writetable(labelTable,fullfile(textDir,[saveName,'.txt']));
+writetable(labelTable,fullfile(saveDir,[saveName,'.txt']));

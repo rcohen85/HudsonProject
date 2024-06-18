@@ -3,14 +3,14 @@
 % names)
 
 % Directory containing sound files (wave or flac)
-inDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\AcousticData_WAVE\Piermont\Swift\PM01';
+inDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\AcousticData_FLAC\Stockport\Swift\SCr02';
 % Uncomment these two lines and give a deployment name if you want to
 % collect information across multiple deployments in a single matrix (bigStats)
 % bigStats = []; 
 % depName = '';
 
 % list files in the directory
-fileList = dir(fullfile(inDir,'*.wav')); 
+fileList = dir(fullfile(inDir,'*.flac')); 
 badFiles = [];
 badFiles = find(vertcat(fileList.bytes)==0); % find any empty files
 if ~isempty(badFiles)

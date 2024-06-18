@@ -3,7 +3,9 @@ function normTime = normTimeofD(times,sunrise,sunset)
 % Given a set of detections and diel informaiton specifying night time,
 % renormalize detections to represent a 12 hour day/night period by
 % linear interpolation.
-%
+% -1: sunrise
+% 0: sunset
+% 1 sunrise
 % Assumptions:
 % Both detections and night are sorted by timestamp and
 %   converted to local time (or in UTC with a provided UTCoffset)

@@ -4,9 +4,9 @@
 % directory containing original sound files
 % soundDir = '';
 % directory containing detector output folder(s)
-baseDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\ShortStur\PulseDetectorOutputmetadata';
+baseDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\AtlStur\FishPulseDetectormetadata';
 % directory where you want to save your selection table
-outDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\ShortStur\SelectionTables\SS03\Unlabeled';
+outDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\AtlStur\FishPulseDetectormetadata\SelectionTables';
 chan = 1;
 % dateFormat = '_(\d{8})_(\d{6})';
 % Fs = 250000; % sampling rate (Hz)
@@ -52,7 +52,7 @@ for itr0 = 4:length(dirSet)
         for itr2 = 1:lfs
             thisFile = fileSet.mat{itr2};
 %             flacFile = strrep(thisFile,'.mat','.flac');
-            wavFile = strrep(thisFile,'.mat','.wav');
+            wavFile = cellstr(strrep(thisFile,'.mat','.wav'));
             load(char(fullfile(inDir,thisFile)),'-mat','clickTimes','hdr',...
                 'ppSignal','specClickTf','yFiltBuff','f')
             fileStart = datenum(hdr.start.dvec);

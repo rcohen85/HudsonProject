@@ -14,9 +14,9 @@ parametersST.mergeThr = 1000;% min gap between energy peaks in us
 
 parametersST.frameLengthSec = .05; %Used for calculating fft size
 parametersST.overlap = .50; % fft overlap
-parametersST.REFileExt = '.wav';%  expression to match file extension
+parametersST.REFileExt = '.flac';%  expression to match file extension
 
-% if you're using wav files that have a time stamp in the name, put a
+% if you're using files that have a time stamp in the name, put a
 % regular expression for extracting that here:
 parametersST.DateRE = '_(\d*)_(\d*)';
 

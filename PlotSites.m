@@ -23,7 +23,7 @@ t.LongitudeLabel.String="";
 t.LongitudeAxis.TickLabelFormat = '-dd';
 t.LatitudeAxis.TickLabelFormat = '-dd';
 
-savename = 'C:\Users\rec297\CCB\HudsonProject\AllHudson_SitePolygons_topoMap_FBEK.png';
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\AllHudson_SitePolygons_topoMap_FBEK.png';
 saveas(gcf,savename,'png');
 
 %% Plot all NERRS Hudson River Valley sites (main channel & tributaries)
@@ -56,7 +56,7 @@ t=h.Parent;
 t.LatitudeLabel.String="";
 t.LongitudeLabel.String="";
 
-savename = 'C:\Users\rec297\CCB\HudsonProject\AllHudson_SiteMap_Larger.png';
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\AllHudson_SiteMap_Larger.png';
 saveas(gcf,savename,'png');
 
 %% Plot Stockport sites
@@ -85,7 +85,7 @@ t.LongitudeAxis.FontSize=25;
 t.LongitudeAxis.TickLabelFormat = '-dd';
 t.LatitudeAxis.TickLabelFormat = '-dd';
 
-savename = 'C:\Users\rec297\CCB\HudsonProject\StockportSites.png';
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\StockportSites.png';
 saveas(gcf,savename,'png');
 
 %% Plot Tivoli sites
@@ -114,7 +114,7 @@ t.LongitudeAxis.FontSize=25;
 t.LongitudeAxis.TickLabelFormat = '-dd';
 t.LatitudeAxis.TickLabelFormat = '-dd';
 
-savename = 'C:\Users\rec297\CCB\HudsonProject\TivoliSites.png';
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\TivoliSites.png';
 saveas(gcf,savename,'png');
 
 %% Plot Norrie Point sites
@@ -154,9 +154,49 @@ t.LatitudeAxis.TickLabelFormat = '-dd';
 % gb2.ColorLegendTitle = 'Device';
 % gb2.Basemap = 'topographic';
 
-savename = 'C:\Users\rec297\CCB\HudsonProject\NorriePointSites.png';
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\NorriePointSites.png';
 saveas(gcf,savename,'png');
 
+%% Plot Atlantic sturgeon site
+
+% lats = [41.81440]';
+% lons = [-73.94540]';
+% polyLats = [ 41.818, 41.818,41.814086,41.814086,41.818];
+% polyLons = [-73.9458,-73.9443,-73.9454,-73.9469,-73.9458];
+% sitePoly = geopolyshape(polyLats,polyLons);
+% 
+% h = geoplot(sitePoly,'FaceColor','none','EdgeColor','w','LineWidth',2)
+% hold on
+% geoscatter(lats,lons,200,'filled')
+% hold off
+% geobasemap topographic
+% geolimits([41.8098, 41.824],[-73.95,-73.939])
+% set(gca,'FontSize',14)
+% t=h.Parent;
+% t.LatitudeLabel.String="";
+% t.LongitudeLabel.String="";
+% t.LongitudeAxis.TickLabelFormat = '-dd';
+% t.LatitudeAxis.TickLabelFormat = '-dd';
+
+polyLats = [ 41.8214, 41.8214,41.8124,41.8124,41.8214];
+polyLons = [-73.9487,-73.9395,-73.9395,-73.9487,-73.9487];
+sitePoly = geopolyshape(polyLats,polyLons);
+
+figure(99),clf
+h = geoplot(sitePoly,'FaceColor','none','EdgeColor','b','LineWidth',2)
+geobasemap topographic
+geolimits([41.8, 41.88],[-74,-73.89])
+t=h.Parent;
+t.LatitudeLabel.String="";
+t.LatitudeAxis.FontSize=15;
+t.LongitudeLabel.String="";
+t.LongitudeAxis.FontSize=15;
+t.LongitudeAxis.TickLabelFormat = '-dd';
+t.LatitudeAxis.TickLabelFormat = '-dd';
+
+
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\AtlanticSturgeonSite';
+saveas(gcf,savename,'png');
 %% Plot Iona sites
 names = {'Iona Island','Iona Channel'}';
 devices = categorical({'Swift','ST600'});
@@ -184,7 +224,7 @@ t.LatitudeAxis.TickValues = [41.3,41.31]
 t.LongitudeAxis.TickLabelFormat = '-dd';
 t.LatitudeAxis.TickLabelFormat = '-dd';
 
-savename = 'C:\Users\rec297\CCB\HudsonProject\IonaSites2.png';
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\IonaSites2.png';
 saveas(gcf,savename,'png');
 
 %% Plot Furnacebrook Creek & Enderkill Creek
@@ -214,7 +254,7 @@ t.LatitudeAxis.TickValues = [41.22,41.23,41.24]
 t.LongitudeAxis.TickLabelFormat = '-dd';
 t.LatitudeAxis.TickLabelFormat = '-dd';
 
-savename = 'C:\Users\rec297\CCB\HudsonProject\FBEKSites.png';
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\FBEKSites.png';
 saveas(gcf,savename,'png');
 
 %% Plot Piermont Sites
@@ -243,7 +283,7 @@ t.LongitudeAxis.FontSize=25;
 t.LongitudeAxis.TickLabelFormat = '-dd';
 t.LatitudeAxis.TickLabelFormat = '-dd';
 
-savename = 'C:\Users\rec297\CCB\HudsonProject\PiermontSites.png';
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\PiermontSites.png';
 saveas(gcf,savename,'png');
 
 
@@ -315,7 +355,7 @@ yticklabels(sortedSites(:,1));
 % ytickangle(45)
 set(gca,'FontSize',20)
 
-savename = 'C:\Users\rec297\CCB\HudsonProject\AllHudson_DataCoverage_Plain.png';
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\AllHudson_DataCoverage_Plain.png';
 saveas(gcf,savename,'png');
 
 
@@ -368,6 +408,52 @@ yticklabels(sortedSites(:,1));
 % ytickangle(45)
 set(gca,'FontSize',20)
 
-savename = 'C:\Users\rec297\CCB\HudsonProject\NERRS_DataCoverage.png';
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\NERRS_DataCoverage.png';
+saveas(gcf,savename,'png');
+
+
+%% Plot Atlantic Sturgeon coverage
+siteNames = {'Atlantic Sturgeon Spawning','AS'};
+deployInfo = readtable('W:\projects\2022_NOAA-NERRS_HudsonNY_144488\DeploymentInfo.xlsx','VariableNamingRule','preserve');
+for i=1:height(deployInfo)
+    if strncmp(deployInfo.Site(i),'',10)
+        deployInfo.Site(i) = deployInfo.Site(i-1);
+    end
+end
+deployInfo([28,54,83:84],:) = [];
+% sites = unique(deployInfo.Site);
+siteLats = [];
+siteLons = [];
+for i=1:size(siteNames,1)
+    siteInds = find(contains(deployInfo.Deployment,siteNames{i,2}));
+    siteLats(i) = mean(deployInfo.Lat(siteInds),'omitnan');
+    siteLons(i) = mean(deployInfo.Lon(siteInds),'omitnan');
+end
+
+% Sort sites south->north
+[sortedLats, I] = sort(siteLats);
+sortedSites = siteNames(I,:);
+
+% Convert deployment start/end dates to plottable format
+startDates = datetime(deployInfo.("Start Datetime"),'InputFormat','dd-MM-yyyy HH:mm:ss');
+stopDates = datetime(deployInfo.("End Datetime"),'InputFormat','dd-MM-yyyy HH:mm:ss');
+
+figure(77),clf
+cmap = hsv(size(sortedSites,1));
+hold on
+for i=1:size(sortedSites,1)
+    siteInds = find(contains(deployInfo.Deployment,sortedSites{i,2}));
+    dataRanges = [(startDates(siteInds))';(stopDates(siteInds))'];
+    yval = (ones(length(siteInds),1)*i)';
+%     plot(dataRanges,[yval;yval],'-','Color',cmap(i,:),'LineWidth',10);
+    plot(dataRanges,[yval;yval],'-','Color',[0,102,204]./255,'LineWidth',10);
+end
+hold off
+xlim([datetime(2021,6,1,0,0,0),datetime(2021,7,20,0,0,0)])
+yticks([])
+title('Data Coverage')
+set(gca,'FontSize',20)
+
+savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\NERRS_DataCoverage.png';
 saveas(gcf,savename,'png');
 

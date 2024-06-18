@@ -1,11 +1,11 @@
 clearvars
 opts = delimitedTextImportOptions('DataLines',1,'Delimiter','tab');
-inFile = readtable('U:\projects\2013_UnivMD_Maryland_71485\KooguNARWDetEval\NewAnnotationListFiles\MD07_10pct.txt',opts);
-saveName = 'U:\projects\2013_UnivMD_Maryland_71485\KooguNARWDetEval\NewAnnotationListFiles\MD07_10pct_Mac.txt';
+inFile = readtable('E:\WavFiles\listFiles\Windows\2020_listfile.txt',opts);
+saveName = 'E:\WavFiles\listFiles\Mac\2020_listfile.txt';
 
 newPaths = strrep(inFile.Var1,'\','/');
-newPaths = strrep(newPaths,'U:','');
-newPaths = strcat(repmat('/Volumes/ag-clo-repnas5.ad.cornell.edu',length(newPaths),1),newPaths);
+newPaths = strrep(newPaths,'E:','');
+newPaths = strcat(repmat('/Volumes/Huso',length(newPaths),1),newPaths);
 newTable = cell2table(newPaths);
 
 writetable(newTable,saveName,'Delimiter','\t','WriteVariableNames',0);
@@ -47,10 +47,10 @@ writetable(listTable,saveName,'Delimiter','\t','WriteVariableNames',0)
 
 %% Make list files for all days
 clearvars
-inDir = 'U:\projects\2013_UnivMD_Maryland_71485\Sounds\71485_MD07_002K_12CH_AIFF';
-saveName = 'U:\projects\2013_UnivMD_Maryland_71485\KooguNARWDetEval\DetectorListFiles\MD07_listfile.txt';
+inDir = 'E:\WavFiles\2016';
+saveName = 'E:\WavFiles\listFiles\2016_listfile.txt';
 
-allFiles = dir(fullfile(inDir,'**/*.aif'));
+allFiles = dir(fullfile(inDir,'**/*.wav'));
 fullPaths = fullfile(cellstr(vertcat(allFiles.folder)),cellstr(vertcat(allFiles.name)));
 
 listTable = cell2table(fullPaths);

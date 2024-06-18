@@ -1,12 +1,22 @@
 clearvars
 opts = delimitedTextImportOptions('DataLines',1,'Delimiter','tab');
-inFile = readtable('U:\projects\2013_UnivMD_Maryland_71485\KooguNARWDetEval\NewAnnotationListFiles\MD07_10pct.txt',opts);
-saveName = 'U:\projects\2013_UnivMD_Maryland_71485\KooguNARWDetEval\NewAnnotationListFiles\MD07_10pct_Mac.txt';
+% inFile = readtable('U:\projects\2013_UnivMD_Maryland_71485\KooguNARWDetEval\NewAnnotationListFiles\MD07_10pct.txt',opts);
+% saveName = 'U:\projects\2013_UnivMD_Maryland_71485\KooguNARWDetEval\NewAnnotationListFiles\MD07_10pct_Mac.txt';
+inFile = readtable('/Volumes/ag-clo-repnas5.ad.cornell.edu/projects/2020_UnivMD_Maryland_139635/03_139635_Analysis/Dep01/Species_Analyses/ManualAnalysisListFiles/T3M_RH419_ManualAnalysis_ClaireMac.txt',opts);
+saveName = '/Volumes/ag-clo-repnas5.ad.cornell.edu/projects/2020_UnivMD_Maryland_139635/03_139635_Analysis/Dep01/Species_Analyses/ManualAnalysisListFiles/T3M_RH419_ManualAnalysis_ClaireMac.txt';
 
-newPaths = strrep(inFile.Var1,'\','/');
-newPaths = strrep(newPaths,'U:','');
-newPaths = strcat(repmat('/Volumes/ag-clo-repnas5.ad.cornell.edu',length(newPaths),1),newPaths);
-newTable = cell2table(newPaths);
+% newPaths = strrep(inFile.Var1,'\','/');
+% newPaths = strrep(newPaths,'U:','');
+% newPaths = strcat(repmat('/Volumes/ag-clo-repnas5.ad.cornell.edu',length(newPaths),1),newPaths);
+% newTable = cell2table(newPaths);
+
+ind = strfind(inFile.Var1,'/139');
+partialPaths = char(cellfun(@(x) x(1:66),inFile.Var1,'UniformOutput',0));
+dates = regexp(inFile.Var1,'\d{8}','match');
+files = char(cellfun(@(x) x(67:end),inFile.Var1,'UniformOutput',0));
+dayFolders = char(cellfun(@(x) strcat('139635MD01_T3M_RH419_',x),[dates{:}],'UniformOutput',0));
+newPaths = strcat(partialPaths,dayFolders,'/',files);
+newTable = cell2table(cellstr(newPaths));
 
 writetable(newTable,saveName,'Delimiter','\t','WriteVariableNames',0);
 

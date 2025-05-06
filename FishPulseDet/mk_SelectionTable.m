@@ -4,10 +4,11 @@
 % directory containing original sound files
 % soundDir = '';
 % directory containing detector output folder(s)
-baseDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\AtlStur\FishPulseDetectormetadata';
+baseDir = 'R:\projects\Renata_Brazil_towed_array_dasbr\Towed_array\2023_05_Expedicao_Pegasus_Towed_Array\SpiceDetOutput';
 % directory where you want to save your selection table
-outDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\AtlStur\FishPulseDetectormetadata\SelectionTables';
-chan = 1;
+outDir = 'R:\projects\Renata_Brazil_towed_array_dasbr\Towed_array\2023_05_Expedicao_Pegasus_Towed_Array\SelectionTables\Pegasus';
+chan = 3;
+ms = 0; % are there milliseconds in the file names? If so, use to adjust the time of selections (ms are disregarded in the pulse detector)
 % dateFormat = '_(\d{8})_(\d{6})';
 % Fs = 250000; % sampling rate (Hz)
 % freqRange = [8000 96000];
@@ -17,7 +18,7 @@ chan = 1;
 
 dirSet = dir(baseDir);
 
-for itr0 = 4:length(dirSet)
+for itr0 = 1:length(dirSet)
     if dirSet(itr0).isdir &&~strcmp(dirSet(itr0).name,'.')&&...
             ~strcmp(dirSet(itr0).name,'..')
 
@@ -55,7 +56,12 @@ for itr0 = 4:length(dirSet)
             wavFile = cellstr(strrep(thisFile,'.mat','.wav'));
             load(char(fullfile(inDir,thisFile)),'-mat','clickTimes','hdr',...
                 'ppSignal','specClickTf','yFiltBuff','f')
-            fileStart = datenum(hdr.start.dvec);
+            %fileStart = datenum(hdr.start.dvec);
+            if ms
+            fileStart = char(regexp(thisFile,'_(\d{8})_(\d{6})_(\d{3})','match'));
+            ms_adjust = str2double(fileStart(end-2:end));
+            ms_adjust = ms_adjust*10^-3;
+            end
 %             info = audioinfo(fullfile(soundDir,wavFile)); % audioinfo
 %             gets true size of data
 %             Fs = info.SampleRate;
@@ -75,6 +81,9 @@ for itr0 = 4:length(dirSet)
                 [~,keepers] = unique(clickTimes(:,1));
                 clickTimes = clickTimes(keepers,:);
                 numDets = size(clickTimes,1);
+                if ms
+                    clickTimes = clickTimes + ms_adjust;
+                end
 %                 posDnum = (clickTimes(:,1)/(60*60*24)) + fileStart;
 %                 posDvec = datevec(datetime(posDnum,'ConvertFrom','datenum'));
 %                 dStrings = cellstr([num2str(posDvec(:,1)),repmat('/',numDets,1),...

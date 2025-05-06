@@ -1,15 +1,15 @@
 %% Convert list files from Windows path format to Mac path format
 
 opts = delimitedTextImportOptions('DataLines',1,'Delimiter','tab');
-inFile = readtable('W:\projects\2020_UnivMD_Maryland_139635\03_139635_Analysis\Dep01\Species_Analyses\ManualAnalysisListFiles\T3M_RH419_ManualAnalysis.txt',opts);
-saveName = 'W:\projects\2020_UnivMD_Maryland_139635\03_139635_Analysis\Dep01\Species_Analyses\ManualAnalysisListFiles\T3M_RH419_ManualAnalysis_ClaireMac.txt';
+inFile = readtable("E:\2022_UnivMD_Maryland_139635\List Files\Dep02\T3M_listFile.txt",opts);
+saveName = "E:\2022_UnivMD_Maryland_139635\List Files\Dep02\T3M_listFile_Mac.txt";
 
 newPaths = strrep(inFile.Var1,'\','/');
-% newPaths = strrep(newPaths,'W:','');
+newPaths = strrep(newPaths,'E:','/Volumes/Extreme Pro');
 % newPaths = strcat(repmat('/Volumes/ag-clo-repnas5.ad.cornell.edu',length(newPaths),1),newPaths);
-slashInd = strfind(newPaths,'/');
-slashInd = cell2mat(cellfun(@(x) x(end),slashInd,'UniformOutput',0));
-newPaths = strcat(repmat('/Volumes/Extreme Pro/2022_UnivMD_Maryland_139635/Sounds/T3M_RH419/',length(newPaths),1),extractAfter(newPaths,slashInd));
+% slashInd = strfind(newPaths,'/');
+% slashInd = cell2mat(cellfun(@(x) x(end),slashInd,'UniformOutput',0));
+% newPaths = strcat(repmat('/Volumes/Extreme Pro/2022_UnivMD_Maryland_139635/Sounds/T3M_RH419/',length(newPaths),1),extractAfter(newPaths,slashInd));
 newTable = cell2table(newPaths);
 
 writetable(newTable,saveName,'Delimiter','\t','WriteVariableNames',0);
@@ -60,10 +60,10 @@ writetable(listTable,saveName,'Delimiter','\t','WriteVariableNames',0)
 
 %% Make list files for all days
 
-inDir = 'U:\projects\2013_UnivMD_Maryland_71485\Sounds\71485_MD07_002K_12CH_AIFF';
-saveName = 'U:\projects\2013_UnivMD_Maryland_71485\KooguNARWDetEval\DetectorListFiles\MD07_listfile.txt';
+inDir = 'E:\2022_UnivMD_Maryland_139635\Sounds\Dep02\T3M';
+saveName = 'E:\2022_UnivMD_Maryland_139635\List Files\Dep02\T3M_listFile.txt';
 
-allFiles = dir(fullfile(inDir,'**/*.aif'));
+allFiles = dir(fullfile(inDir,'**/*.flac'));
 fullPaths = fullfile(cellstr(vertcat(allFiles.folder)),cellstr(vertcat(allFiles.name)));
 
 listTable = cell2table(fullPaths);

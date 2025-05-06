@@ -373,7 +373,7 @@ else
     set(axH, 'YGrid', 'on', ...
         'YTick', ytick);
 end
-datetick(axH, 'y', 1, 'keeplimits', 'keepticks');
+datetick(axH, 'y', 6, 'keeplimits', 'keepticks');
 
 title(Title);
 xlabel(Xstring)

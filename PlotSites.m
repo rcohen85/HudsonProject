@@ -118,10 +118,14 @@ savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\TivoliSites.png';
 saveas(gcf,savename,'png');
 
 %% Plot Norrie Point sites
-names = {'NorriePoint','ShortnoseStur','AtlanticStur','BlackCreek','Enderkill Creek'};
-devices = categorical({'Swift','ST600','ST600','Swift','Swift'});
-lats = [41.83167,41.86768,41.81440,41.82400,41.839]';
-lons = [-73.94194,-73.93382,-73.94540,-73.95900,-73.935]';
+% names = {'NorriePoint','ShortnoseStur','AtlanticStur','BlackCreek','Enderkill Creek'};
+names = {'AtlanticStur','Telem'};
+% devices = categorical({'Swift','ST600','ST600','Swift','Swift'});
+devices = categorical({'ST300','TelemReceiver'});
+% lats = [41.83167,41.86768,41.81440,41.82400,41.839]';
+lats = [41.81440,41.83077063];
+% lons = [-73.94194,-73.93382,-73.94540,-73.95900,-73.935]';
+lons = [-73.94540,-73.94737395];
 % siteTable = table(names,devices,lats,lons);
 cmap = lines(length(unique(devices)));
 % 
@@ -131,10 +135,10 @@ cmap = lines(length(unique(devices)));
 % gb1.Basemap = 'topographic';
 % geolimits([41.8,41.8833],[-73.9750 -73.9083])
 
-figure(99),clf
-h = geoscatter(lats,lons,200,cmap(devices,:),'filled')
+figure(9999),clf
+h = geoscatter(lats,lons,100,cmap(devices,:),'filled')
 geobasemap topographic
-geolimits([41.8, 41.88],[-74,-73.89])
+geolimits([41.79, 41.85],[-73.965,-73.935])
 % hold on % workaround to display discrete color legend instead of colorbar
 % for i=1:size(cmap,1)
 % h(i)=geoscatter(lats(1),lons(1),0.5,cmap(i,:),'filled');
@@ -143,9 +147,9 @@ geolimits([41.8, 41.88],[-74,-73.89])
 % hold off
 t=h.Parent;
 t.LatitudeLabel.String="";
-t.LatitudeAxis.FontSize=25;
+t.LatitudeAxis.FontSize=14;
 t.LongitudeLabel.String="";
-t.LongitudeAxis.FontSize=25;
+t.LongitudeAxis.FontSize=14;
 t.LongitudeAxis.TickLabelFormat = '-dd';
 t.LatitudeAxis.TickLabelFormat = '-dd';
 
@@ -155,6 +159,7 @@ t.LatitudeAxis.TickLabelFormat = '-dd';
 % gb2.Basemap = 'topographic';
 
 savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\NorriePointSites.png';
+savename = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\AtlStur\Figures\SiteMap.pdf'
 saveas(gcf,savename,'png');
 
 %% Plot Atlantic sturgeon site
@@ -182,7 +187,7 @@ polyLats = [ 41.8214, 41.8214,41.8124,41.8124,41.8214];
 polyLons = [-73.9487,-73.9395,-73.9395,-73.9487,-73.9487];
 sitePoly = geopolyshape(polyLats,polyLons);
 
-figure(99),clf
+figure(777),clf
 h = geoplot(sitePoly,'FaceColor','none','EdgeColor','b','LineWidth',2)
 geobasemap topographic
 geolimits([41.8, 41.88],[-74,-73.89])
@@ -359,7 +364,7 @@ savename = 'P:\users\cohen_rebecca_rec297\CCB\HudsonProject\AllHudson_DataCovera
 saveas(gcf,savename,'png');
 
 
-%% Plot just NERRS 2023 data coverage
+%% Plot just NERRS data coverage
 siteNames = {'Atlantic Sturgeon Spawning','AS';'Black Creek','BC';...
     'Shortnose Sturgeon Overwintering','SS';'Tivoli Bay North','TBN';'Tivoli Bay South','TBS';...
     'Tivoli Channel','TCh';'Iona Island','II';'Iona Channel','ICh';'Piermont Marsh','PM';...
@@ -371,7 +376,7 @@ for i=1:height(deployInfo)
         deployInfo.Site(i) = deployInfo.Site(i-1);
     end
 end
-deployInfo([28,54,83:84],:) = [];
+deployInfo([39,65],:) = [];
 % sites = unique(deployInfo.Site);
 siteLats = [];
 siteLons = [];
@@ -402,7 +407,7 @@ end
 hold off
 ylim([0.5,size(sortedSites,1)+0.5])
 % xticks([datetime(2023,1,1),datetime(2023,4,1),datetime(2023,7,1),datetime(2023,10,1)])
-xlim([datetime(2023,1,1,0,0,0),datetime(2023,10,1,0,0,0)])
+xlim([datetime(2023,1,1,0,0,0),datetime(2024,10,1,0,0,0)])
 yticks([1:size(sortedSites,1)]);
 yticklabels(sortedSites(:,1));
 % ytickangle(45)

@@ -1,0 +1,196 @@
+% Directories w MANTA PSD output
+% inDir = {'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\ChestnutSAVSoundscapes\MANTA\NP12\ch_NP12_NP12.1.32000';
+%     'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\ChestnutSAVSoundscapes\MANTA\NP09\ch_NP09_NP09.1.32000'};
+inDir = {'C:\Users\rec297\AppData\Local\Temp\rec297\mcrCache9.9\datamining_data\output\MILLIDEC_MinRes\ch_173170GLBA_384K_WB01_ST600-8566_20240814_120357Zm0800\2024\csv';
+    'W:\projects\2024_NPS-GLBA_AK_173170\NoiseData\MANTA_TidalInlet\MILLIDEC_MinRes\ch_shallow_6369.240514205117\2024'};
+outDir = 'W:\projects\2024_NPS-GLBA_AK_173170';
+Fs = 384000;
+freqRange = [1,1000]; % Freq band over which to sum energy
+oldTres = 60; % temporal resolution of PSD data (s)
+newTres = 3600; % desired time period over which to average power (s)
+dateRange = [datetime(2024,08,15),datetime(2024,08,28,23,59,59)]; % for plotting
+names = {'Willoughby','Tidal'};
+
+
+BP_TS = struct('Date',[],'BandPower_dB',[]);
+
+for j=1:size(inDir,1)
+    fileList = dir(fullfile(inDir{j},'*.csv'));
+
+    BP = [];
+    TS = [];
+    for i=1:size(fileList,1)
+
+        PSD = readtable(fullfile(inDir{j},fileList(i).name),'Delimiter',',');
+        if ~isempty(freqRange) % Reduce array to desired frequency range
+            [m, lowInd] = min(abs(table2array(PSD(1,2:end))-freqRange(1)));
+            [m, highInd] = min(abs(table2array(PSD(1,2:end))-freqRange(2)));
+            PSD = PSD(2:end,lowInd+1:highInd+1);
+        else
+            PSD = PSD(2:end,:);
+        end
+        
+        % Account for millidecade bandwidth
+        mDecBands = getBandTable(1, 0, Fs, 10, 1000, 1, 1);
+        mBandwidth = mDecBands(2:end,3)-mDecBands(2:end,1);
+        Pwr_dB = table2array(PSD(:,2:end)) + 10*log10(mBandwidth');
+        % Convert dB to linear power
+        Pwr_lin = 10.^(Pwr_dB./10);
+        % Sum across desired frequency band
+        bandPwr_lin = sum(Pwr_lin,2);
+        % Average across desired time bin
+        chunkSize = newTres/oldTres;
+        tGroup = repelem(1:ceil(size(bandPwr_lin,1)/chunkSize),chunkSize);
+        tGroup = tGroup(1:size(bandPwr_lin,1));
+        G = findgroups(tGroup);
+        compTable = table(bandPwr_lin,G','VariableNames',{'BP','G'});
+        mean_bandPwr_lin = groupsummary(compTable,'G','mean');
+        % Revert to dB
+        bandPwr_dB = 10.*log10(mean_bandPwr_lin.mean_BP);
+        % Update timestamp variable to new temporal resolution
+        dates = table2array(PSD(1:chunkSize:end,1));
+
+        if i==1
+            TS = dates;
+            BP = bandPwr_dB;
+%             bandPwrTS = table(table2array(inFile(:,1)),bandPwr_dB,'VariableNames',{'Date','BandPower_dB'});
+        else
+            TS = [TS;dates];
+            BP = [BP;bandPwr_dB];
+%             bandPwrTS = [bandPwrTS;table(table2array(inFile(:,1)),bandPwr_dB,'VariableNames',{'Date','BandPower_dB'})];
+        end
+
+    end
+
+BP_TS(j).Date = TS;
+BP_TS(j).BandPower_dB = BP;
+
+end
+
+% Prepare for later plotting by site
+for i=1:length(BP_TS)
+    BP_TS(i).Site = cellstr(repmat(names{i},size(BP_TS(i).BandPower_dB,1),1));
+end
+dateMat = vertcat(BP_TS.Date);
+BPmat = vertcat(BP_TS.BandPower_dB);
+nameMat = vertcat(BP_TS.Site);
+
+% Filter by desired date range
+if ~isempty(dateRange)
+    keepInd = find(dateMat>=dateRange(1) & dateMat<=dateRange(2));
+    dateMat = dateMat(keepInd,:);
+    BPmat = BPmat(keepInd,:);
+    nameMat = nameMat(keepInd,:);
+end
+
+%% BB Power Level Plots
+% Plot BB Power Spectral Level timeseries
+figure(444),clf
+% plot(BP_TS(1).Date,BP_TS(1).BandPower_dB,'b','LineWidth',1.5)
+plot(BP_TS(1).Date,BP_TS(1).BandPower_dB,'LineWidth',1.5)
+if length(BP_TS)>1
+hold on
+for i=2:length(BP_TS)
+% plot(BP_TS(i).Date,BP_TS(i).BandPower_dB,'Color',[0,204,0]./255,'LineWidth',1.5)
+plot(BP_TS(i).Date,BP_TS(i).BandPower_dB,'LineWidth',1.5)
+end
+hold off
+end
+if ~isempty(dateRange)
+xlim(dateRange);
+end
+ylabel('Broadband Power Level (dB FS)')
+legend(names);
+set(gca,'FontSize',14)
+
+savename = fullfile(outDir,['BBPower_',num2str(freqRange(1)),'Hz_',num2str(freqRange(2)),'Hz_',num2str(newTres),'sRes.png']);
+saveas(figure(444),savename)
+savename = fullfile(outDir,['BBPower_',num2str(freqRange(1)),'Hz_',num2str(freqRange(2)),'Hz_',num2str(newTres),'sRes.pdf']);
+exportgraphics(figure(444),savename,'ContentType','vector');
+
+% Plot BB Power Spectral Level boxplots
+% figure(555),clf
+p=anova1(BPmat,nameMat);
+% boxplot(BPmat,nameMat,'Notch','on')
+ylabel('Broadband Power Level (dB FS)')
+set(gca,'FontSize',14)
+
+savename = fullfile(outDir,['BBPowerLevel_Boxplot_',num2str(newTres),'sRes.png']);
+saveas(gca,savename)
+savename = fullfile(outDir,['BBPowerLevel_Boxplot_',num2str(newTres),'sRes.pdf']);
+exportgraphics(gca,savename,'ContentType','vector');
+
+
+%% Get hourly-averaged BB RL of hand-selected anthropogenic noise events
+% Note: newTres should be 660
+
+loudDates = [datetime(2023,7,8,09,00,00);datetime(2023,7,10,05,00,00);...
+    datetime(2023,7,11,08,00,00);datetime(2023,7,13,11,00,00);...
+    datetime(2023,7,16,14,00,00);datetime(2023,7,17,16,00,00);...
+    datetime(2023,7,18,14,00,00);datetime(2023,7,20,00,00,00);...
+    datetime(2023,7,22,21,00,00);datetime(2023,7,25,20,00,00)];
+
+ind = find(ismember(dateMat,loudDates));
+numNameMat = findgroups(nameMat(ind));
+
+figure(777),clf
+% boxplot(BPmat(ind),nameMat(ind),'Notch','on')
+plot(numNameMat,BPmat(ind),'.','MarkerSize',30)
+xlim([min(unique(numNameMat))-1,max(unique(numNameMat))+1])
+xticks(unique(numNameMat))
+xticklabels(unique(nameMat(ind)))
+set(gca,'XDir','reverse')
+ylabel('Broadband Power Level (dB FS)')
+set(gca,'FontSize',14)
+
+savename = fullfile(outDir,'HighAmplitudeAnthroEvent_BBRL.png');
+saveas(figure(777),savename)
+savename = fullfile(outDir,'HighAmplitudeAnthroEvent_BBRL.pdf');
+exportgraphics(figure(777),savename,'ContentType','vector');
+
+
+%% Correlate BB Power Levels & DO
+
+trapaFiles = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\ChestnutSAVSoundscapes\Dissolved_Oxygen\DO.Temp.2023.waterchestnut';
+SAVfile = "W:\projects\2022_NOAA-NERRS_HudsonNY_144488\ChestnutSAVSoundscapes\Dissolved_Oxygen\DO.Temp.SAV River location\226037.csv";
+
+TfileList = dir(fullfile(trapaFiles,'*.txt'));
+
+for i=1:length(TfileList)
+DO = readtable(fullfile(trapaFiles,TfileList(i).name),'Delimiter',',','VariableNamingRule','preserve');
+DO(:,'Datetime') = array2table(datetime((table2array(DO(:,'Time (sec)'))/86400)+719529,'ConvertFrom','datenum'));
+if i==1
+  trapaData = DO;
+else
+  trapaData = [trapaData;DO];
+end
+end
+trapaData.Group = dateshift(trapaData.Datetime,'start','hour');
+trapaNewRes = groupsummary(trapaData,'Group','mean');
+trapaNewRes.Properties.VariableNames = {'Group','Count','Time(s)','mean_BV','meanT','meanDO','meanQ','meanDateTime'};
+
+keepInd = find(BP_TS(2).Date>=dateRange(1) & BP_TS(2).Date<=dateRange(2));
+keepInd2 = find(trapaNewRes.Group>=dateRange(1) & trapaNewRes.Group<=dateRange(2));
+[rho,p] = corrcoef(trapaNewRes.meanDO(keepInd2),BP_TS(2).BandPower_dB(keepInd),'Rows','complete');
+rho = rho(1,2)
+p = p(1,2)
+
+SAVdata = readtable(SAVfile,'Delimiter',',','VariableNamingRule','preserve');
+NPdata = strmatch('hudnpwq',SAVdata.StationCode);
+SAVdata = SAVdata(NPdata,:);
+SAVdata.StationCode = [];
+SAVdata.isSWMP = [];
+SAVdata.F_Record = [];
+SAVdata.F_Temp = [];
+SAVdata.F_DO_pct = [];
+SAVdata.F_DO_mgl = [];
+SAVdata.F_Depth = [];
+SAVdata.Group = dateshift(SAVdata.DateTimeStamp,'start','hour');
+SAVnewRes = groupsummary(SAVdata,'Group','mean');
+
+keepInd = find(BP_TS(1).Date>=dateRange(1) & BP_TS(1).Date<=dateRange(2));
+keepInd2 = find(SAVnewRes.Group>=dateRange(1) & SAVnewRes.Group<=dateRange(2));
+[rho,p] = corrcoef(SAVnewRes.mean_DO_mgl(keepInd2),BP_TS(1).BandPower_dB(keepInd),'Rows','complete');
+rho = rho(1,2)
+p = p(1,2)
+

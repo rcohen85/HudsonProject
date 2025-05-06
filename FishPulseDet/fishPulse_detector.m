@@ -30,12 +30,12 @@ tfFullFile = '';%176.3;
 deviceType = [];%'ST';
 
 % Location of base directory containing directories of files to be analyzed
-baseDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\AcousticData_FLAC\Tivoli\ST600';
+baseDir = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\AcousticData_WAVE\ShrtSturWnt\ST300';
 
 % Optional output directory location. Metadata directory will be created in outDir
 % if specified, otherwise it will be created in baseDir.
 % outDir = '<your path here>';
-outDir  = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\PulseDetectorOutputmetadata\TCh01'; 
+outDir  = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\PulseDetectorOutputmetadata\SS06'; 
 
 [metaDir,~] = dBuild_dirs(baseDir,outDir);
 % inDisk = fileparts(baseDir(1:3));
@@ -45,7 +45,7 @@ outDir  = 'W:\projects\2022_NOAA-NERRS_HudsonNY_144488\PulseDetectorOutputmetada
 % directory(ies) you want to look in you want to look at. For now, 
 % directory hierarchy is expected to be: basedir>depl*>*.x.wav
 % TODO: implement recursive directory search for more flexibility.
-depl = 'TCh01';
+depl = 'SS06';
 
 % Set flags indicating which routines to run. 
 lowResDet = 1; %run short time detector.

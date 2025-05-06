@@ -1,3 +1,6 @@
+# Split a large selection table with annotations for multiple audio files down into smaller individual selection
+# tables for individual audio files. Big table must have 'Begin File' field.
+
 library(stringr)
 
 inPath = 'U:/projects/2013_UnivMD_Maryland_71485/KooguNARWDetEval/NewAnnotationTables/MD04_ground_truth.txt'

@@ -1,4 +1,4 @@
-function parametersHR = dLoad_HRsettings_broad
+function parametersHR = dLoad_HRsettings_FishPulse
 
 %%% BANDPASS FILTER AND FFT PARAMS %%
 parametersHR.bpRanges = [10,10000]; % Bandpass filter params in Hz [min,max]
@@ -16,8 +16,8 @@ parametersHR.saveForTPWS = 1; % Save just enough data to build TPWS files. Shoul
 % limit metadata size.
 
 %%% RECIEVED LEVEL THRESHOLD %%%
-parametersHR.dBpp = 110;% minimum  RL threshold - dB peak to peak.
-parametersHR.countThresh = [];%40; 
+parametersHR.dBpp = [];% minimum  RL threshold - dB peak to peak.
+parametersHR.countThresh = 40; 
 %%% CLICK ENVELOPE PARAMS %%%
 parametersHR.energyThr = 0.7; % n-percent energy threshold for high-energy envelope duration
 parametersHR.dEvLims = [];  % [min,max] Envelope energy distribution comparing 

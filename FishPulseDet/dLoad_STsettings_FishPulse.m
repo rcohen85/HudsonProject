@@ -1,4 +1,4 @@
-function parametersST = dLoad_STsettings_broad
+function parametersST = dLoad_STsettings_FishPulse
 % Assign short term detector settings
 
 parametersST.buff = 0.1; % # of buffer in seconds to add on either side of area of interest
@@ -6,15 +6,15 @@ parametersST.chan = 1; % which channel do you want to look at?
 
 parametersST.bpRanges = [10 10000]; % Bandpass filter parameters in Hz [min,max]
 parametersST.filterOrder = 5; % butterworth filter order used for band pass
-parametersST.dBpp = 110; % minimum amplitude threshold in dB. 
-parametersST.countThresh = []%40; % For predictability, keep this consistent between low and hi res steps.
+parametersST.dBpp = []; % minimum amplitude threshold in dB. 
+parametersST.countThresh = 40; % For predictability, keep this consistent between low and hi res steps.
 
 parametersST.frameLengthUs = 50000; % For fft computation
 parametersST.mergeThr = 1000;% min gap between energy peaks in us
 
 parametersST.frameLengthSec = .05; %Used for calculating fft size
 parametersST.overlap = .50; % fft overlap
-parametersST.REFileExt = '.flac';%  expression to match file extension
+parametersST.REFileExt = '.wav';%  expression to match file extension
 
 % if you're using files that have a time stamp in the name, put a
 % regular expression for extracting that here:

@@ -11,8 +11,8 @@ library(pracma)
 # DCLDE, original data
 # anotDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/DCLDE_Data/Test/SelectionTables/Ch01_wTimestamps'
 # audioDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/DCLDE_Data/Test/Channel_1_wTimestamps'
-anotDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/DCLDE_Data/Test/SelectionTables/Ch01'
-audioDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/DCLDE_Data/Test/Channel_1'
+#anotDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/DCLDE_Data/Test/SelectionTables/Ch01'
+#audioDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/DCLDE_Data/Test/Channel_1'
 
 # DCLDE, freq shifted
 # anotDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/DCLDE_Data/Test/SelectionTables/Ch01_wTimestamps_Shifted'
@@ -41,12 +41,13 @@ audioDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/DCLDE_Data/Test/Channel_
 # BirdNET
 # detDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/BirdNET/Testing/V2.4/20240530_3/Detections'
 # saveDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/BirdNET/Testing/V2.4/20240530_3'
+anotDir = 'W:/projects/2022_NOAA-NERRS_HudsonNY_144488/AtlStur/ThunderClassifier_Training/KooguModel/TestAnnotations'
+audioDir = 'W:/projects/2022_NOAA-NERRS_HudsonNY_144488/AtlStur/ThunderClassifier_Training/KooguModel/TestAudio'
+detDir = 'W:/projects/2022_NOAA-NERRS_HudsonNY_144488/AtlStur/ThunderClassifier_Training/KooguModel/TestDetections/20240124_5/Detections2'
+saveDir = 'W:/projects/2022_NOAA-NERRS_HudsonNY_144488/AtlStur/ThunderClassifier_Training/KooguModel/TestDetections/20240124_5'
 
-detDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/Shyam_NARWDet_Test/Detections'
-saveDir = 'P:/users/cohen_rebecca_rec297/CCB/DCLDE2024/Shyam_NARWDet_Test'
-
-binSize = 3 # duration of detector bins (s); if -1, will estimate detector bin size from detector output
-minO = 0.4 # minimum temp1oral overlap (% of annotation duration) to count a detection window as containing a manually annotated call
+binSize = 1.5 # duration of detector bins (s); if -1, will estimate detector bin size from detector output
+minO = 0.1 # minimum temp1oral overlap (% of annotation duration) to count a detection window as containing a manually annotated call
 chans = 1 # either specify channel(s) of interest, or leave as an empty list to analyze all available channels
 SNRcol = c()#SNR.NIST.Quick..dB.'
 
@@ -232,6 +233,7 @@ for (i in 1:length(audio_files)) { # step through each test audio file and evalu
 thresh = c(0.25,0.5,0.65,0.7,0.75,0.8,0.85,0.9,0.925,0.95,0.97,0.98,0.99)
 metMat = matrix(nrow=length(thresh),ncol=11)
 colnames(metMat) = c("Thresh",'nCalls','nTP','nFP','nTN','nFN','A','P','R','F1','FPR')
+#metMat[,2] = length(allALabels$Index)
 
 allALabels = stack(setNames(allData$ALabel,seq_along(allData$ALabel)))[2:1]
 names(allALabels) = c('Index','Label')
@@ -249,63 +251,75 @@ allDLabels = allDLabels[!is.na(allDLabels$Label),]
 rownames(allDLabels) = seq(length=nrow(allDLabels))
 allDLabels$Index = as.numeric(allDLabels$Index)
 
-metMat[,2] = length(allALabels$Index)
 allLabels = unlist(unique(c(allALabels$Label,allDLabels$Label)))
 
 # confMat = matrix(nrow=length(allLabels),ncol=length(allLabels))
 # rownames(confMat) = paste('true_',allLabels,sep="")
 # colnames(confMat) = paste('pred_',allLabels,sep="")
 
-for (j in 1:length(thresh)){
-  
-  goodInds = which(allDLabels$Score>=thresh[j]) # indices in allDLabels where detection scores exceeded confidence threshold
-  binInds = allDLabels$Index[goodInds] # indices in allData where detection scores exceeded confidence threshold
-  badInds = setdiff(1:length(allData$Time),binInds) # indices in allData with no detection score exceeding confidence threshold
-  
-  # Count up the easy FPs & TNs
-  FP = length(intersect(binInds,which(is.na(allData$ALabel)))) # how many detections above the threshold occur in bins w NO annotation labels?
-  TN = length(intersect(badInds,which(is.na(allData$ALabel)))) # how many times with NO detection above the threshold also have NO annotation labels?
+
   
   # Tally up instances of matched and mismatched labels in each bin with a detection and/or annotation
-  TP = 0
-  FN = 0
-  for (i in 1:length(allLabels)){
-    thisLabDet = allDLabels$Index[goodInds[which(allDLabels$Label[goodInds]==allLabels[i])]]  # indices in allData with this detection label and scores exceeding confidence threshold
-    thisLabAn = allALabels$Index[allALabels$Label==allLabels[i]] # indices in allData with this annotation label
-    otherLabAn = setdiff(allALabels$Index[allALabels$Label!=allLabels[i]],thisLabAn) # indices in allData with only some other annotation label
-    TP = TP + length(which(thisLabDet %in% thisLabAn)) # count bins where detection label and annotation label were the same
-    FN = FN + length(setdiff(thisLabAn,thisLabDet)) # count bins where there was an annotation with this label, but no detection with this label
-    FP = FP + length(which(thisLabDet %in% otherLabAn)) # add to FPs instances with this detection label, but a different annotation label
+
+for (i in 1:length(allLabels)){
+  
+  metMat[,2] = length(which(allALabels$Label==allLabels[i]))
+  
+  for (j in 1:length(thresh)){
     
-    # confMat[i,i] = length(which(thisLabDet %in% thisLabAn))
+    goodInds = which(allDLabels$Score>=thresh[j]) # indices in allDLabels where detection scores exceeded confidence threshold
+    binInds = allDLabels$Index[goodInds] # indices in allData where detection scores exceeded confidence threshold
+    badInds = setdiff(1:length(allData$Time),binInds) # indices in allData with no detection score exceeding confidence threshold
+    
+    # Count up the easy FPs & TNs
+    #FP = length(intersect(binInds,which(is.na(allData$ALabel)))) # how many detections above the threshold occur in bins w NO annotation labels?
+    #TN = length(intersect(badInds,which(is.na(allData$ALabel)))) # how many times with NO detection above the threshold also have NO annotation labels?
+    
+    thisDetLab = allDLabels$Index[goodInds[which(allDLabels$Label[goodInds]==allLabels[i])]]  # indices in allData with this detection label and scores exceeding confidence threshold
+    noDetLab = setdiff(seq(1,nrow(allData)),thisDetLab) # indices in allData with NO detection of this label & exceeding confidence thresh
+    thisAnLab = allALabels$Index[allALabels$Label==allLabels[i]] # indices in allData with this annotation label
+    # otherAnLab = setdiff(allALabels$Index[allALabels$Label!=allLabels[i]],thisAnLab) # indices in allData with only some other annotation label
+    # noAnLab = which(is.na(allData$ALabel)) # indices in allData with no annotation label
+    notThisAnLab = setdiff(seq(1,nrow(allData)),thisAnLab) # indices in allData WITHOUT this annotation label
+    TP = length(which(thisDetLab %in% thisAnLab)) # count bins where detection label and annotation label were the same
+    FN = length(setdiff(thisAnLab,thisDetLab)) # count bins where there was an annotation with this label, but no detection with this label
+    # FP = length(intersect(thisDetLab,noAnLab))# count bins with this detection label above threshold, but no annotation label at all
+    # FP = FP + length(which(thisDetLab %in% otherAnLab)) # add to FPs instances with this detection label, but a different annotation label
+    FP = length(intersect(thisDetLab,notThisAnLab)) # count bins with this detection label above threshold, but no/other annotation label
+    TN = length(intersect(noDetLab,notThisAnLab)) # count bins with NO detection above threshold and also NO annotation for this label
+    
+    # confMat[i,i] = length(which(thisDetLab %in% thisAnLab))
     # if (length(allLabels)>=2){
     #   otherLabs = setdiff(seq_along(allLabels),i)
     #   for (k in otherLabs){
-    #     otherLabAn = setdiff(allALabels$Index[allALabels$Label==allLabels[otherLabs]],thisLabAn) # indices in allData with only this other annotation label
+    #     otherLabAn = setdiff(allALabels$Index[allALabels$Label==allLabels[otherLabs]],thisAnLab) # indices in allData with only this other annotation label
     #   }
     # }
+    
+    metMat[j,3] = TP
+    metMat[j,4] = FP
+    metMat[j,5] = TN
+    metMat[j,6] = FN
+    metMat[j,7] = round((TP+TN)/(TP+TN+FP+FN),3) #Accuracy
+    metMat[j,8] = round(TP/(TP+FP),3) # Precision
+    metMat[j,9] = round(TP/(TP+FN),3) # Recall
+    metMat[j,10] = round((2*TP)/((2*TP)+FP+FN),3) # F1 Score
+    metMat[j,11] = round(FP/(FP+TN),3) # FPR
   }
   
-  metMat[j,3] = TP
-  metMat[j,4] = FP
-  metMat[j,5] = TN
-  metMat[j,6] = FN
-  metMat[j,7] = round((TP+TN)/(TP+TN+FP+FN),3) #Accuracy
-  metMat[j,8] = round(TP/(TP+FP),3) # Precision
-  metMat[j,9] = round(TP/(TP+FN),3) # Recall
-  metMat[j,10] = round((2*TP)/((2*TP)+FP+FN),3) # F1 Score
-  metMat[j,11] = round(FP/(FP+TN),3) # FPR
+  metMat = as.data.frame(metMat)
+  metMat$Thresh = thresh
+  write.table(metMat,paste(saveDir,'/PerformanceMetrics_',str_remove(allLabels[i],' '),'.txt',sep=""))
+  cat(paste('Label: ',allLabels[i],
+            '\nAccuracy: ',as.character(min(metMat$A,na.rm=TRUE)*100),'-',as.character(max(metMat$A,na.rm=TRUE)*100),
+            '\nPrecision: ',as.character(min(metMat$P,na.rm=TRUE)*100),'-',as.character(max(metMat$P,na.rm=TRUE)*100),
+            '\nRecall: ',as.character(min(metMat$R,na.rm=TRUE)*100),'-',as.character(max(metMat$R,na.rm=TRUE)*100),
+            '\nF1: ',as.character(min(metMat$F1,na.rm=TRUE)*100),'-',as.character(max(metMat$F1,na.rm=TRUE)*100),
+            '\nFPR: ',as.character(min(metMat$FPR,na.rm=TRUE)*100),'-',as.character(max(metMat$FPR,na.rm=TRUE)*100),'\n',sep=""))
   
 }
 
-metMat = as.data.frame(metMat)
-metMat$Thresh = thresh
-write.table(metMat,paste(saveDir,'/PerformanceMetrics.txt',sep=""))
-cat(paste('Accuracy: ',as.character(min(metMat$A,na.rm=TRUE)*100),'-',as.character(max(metMat$A,na.rm=TRUE)*100),
-          '\nPrecision: ',as.character(min(metMat$P,na.rm=TRUE)*100),'-',as.character(max(metMat$P,na.rm=TRUE)*100),
-          '\nRecall: ',as.character(min(metMat$R,na.rm=TRUE)*100),'-',as.character(max(metMat$R,na.rm=TRUE)*100),
-          '\nF1: ',as.character(min(metMat$F1,na.rm=TRUE)*100),'-',as.character(max(metMat$F1,na.rm=TRUE)*100),
-          '\nFPR: ',as.character(min(metMat$FPR,na.rm=TRUE)*100),'-',as.character(max(metMat$FPR,na.rm=TRUE)*100),sep=""))
+
 
 # Compute precision/recall as a function of SNR
 if (!isempty(SNRcol)){
